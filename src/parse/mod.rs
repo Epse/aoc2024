@@ -18,23 +18,16 @@ pub fn parse_two_i32_lists(path: &Path) -> Result<(Vec<i32>, Vec<i32>), String> 
     Ok(lines)
 }
 
-fn parse_matrix<T>(path: &Path) -> Result<Vec<Vec<T>>, String>
+pub fn parse_matrix<T>(path: &Path) -> Result<Vec<Vec<T>>, String>
     where T: std::str::FromStr
 {
     let file = File::open(path).expect("Requires datafile");
     let lines = io::BufReader::new(file)
         .lines()
-        .filter_map(|line| {
-            if line.is_err() {
-                None
-            } else {
-                Some(
-                    // Unwrap not needed
-                    line.unwrap().split(" ")
-                        .filter_map(|x| x.parse::<T>().ok())
-                        .collect::<Vec<T>>()
-                )
-            }
+        .map(|line| {
+            line.unwrap().split(" ")
+                .map(|x| x.parse::<T>().map_err(|_e| "Yuck").unwrap())
+                .collect::<Vec<T>>()
         })
         .collect::<Vec<Vec<T>>>();
     Ok(lines)
