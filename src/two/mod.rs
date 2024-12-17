@@ -40,7 +40,7 @@ fn check_record_filtering(record: &Vec<i32>) -> bool {
     }
 
     // Exhaustively check all single-removals to check for safeness
-    for i in 0..(record.len() - 1) {
+    for i in 0..record.len() {
         if check_record(&remove_idx(i, &record)).is_none() {
             return true;
         }
@@ -86,4 +86,16 @@ fn check_record(record: &Vec<i32>) -> Option<usize> {
 
     // If we haven't bailed by now, we gud
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn idx_removal_works() {
+        let data = vec![1, 3, 5, 7];
+        let result = remove_idx(2, &data);
+        assert_eq!(result, vec![1, 3, 7]);
+    }
 }
