@@ -10,6 +10,7 @@ pub fn run() {
 
     let res = search(&input);
     println!("XMAS count: {}", res);
+    println!("X-MAS count: {}", cross_mas_search(&input));
 }
 
 fn search(input: &str) -> u64 {
@@ -104,7 +105,46 @@ fn search_diagonals(input: &Vec<&str>, pos: (usize, usize)) -> u64 {
 }
 
 fn cross_mas_search(input: &str) -> u64 {
-    0
+    // Plus one to deal with newlines
+    let line_length = input.find('\n').expect("Needs at least one newline lol") + 1;
+    let chars = input.chars().collect::<Vec<char>>();
+    let lines = input.chars().filter(|x| *x == '\n').count();
+
+    let mut crosses: u64 = 0;
+
+    // Approach: find an A, check for m and s
+    for i in 0..chars.len() {
+        let row: usize = i / line_length;
+        if row == 0 {
+            continue; // line 0 cannot have a cross, obvs
+        }
+        if row == lines - 1 {
+            break; // Last line can ofc also not start a cross
+        }
+        let col = i % line_length;
+        if col == 0 || col == line_length - 2 { // Minus 2 to deal with \n
+            continue; // First and last col also cannot have a center
+        }
+
+        if chars[i] != 'A' {
+            continue;
+        }
+
+        // Check if we have a cross
+        let top_left = chars[i - line_length - 1];
+        let top_right = chars[i - line_length + 1];
+        let bottom_left = chars[i + line_length - 1];
+        let bottom_right = chars[i + line_length + 1];
+
+        if !(top_left == 'M' && bottom_right == 'S' || top_left == 'S' && bottom_right == 'M') {
+            continue;
+        }
+
+        if top_right == 'M' && bottom_left == 'S' || top_right == 'S' && bottom_left == 'M' {
+            crosses += 1;
+        }
+    }
+    crosses
 }
 
 #[cfg(test)]
@@ -120,7 +160,8 @@ XXAMMXXAMA
 SMSMSASXSS
 SAXAMASAAA
 MAMMMXMMMM
-MXMXAXMASX";
+MXMXAXMASX
+";
 
     #[test]
     fn test_search() {
