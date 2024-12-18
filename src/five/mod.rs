@@ -5,6 +5,9 @@ use std::path::Path;
 mod rule;
 use rule::Rule;
 
+mod two;
+use two::reorder_pageset;
+
 pub fn run() {
     let path = Path::new("data/five");
     let mut file = File::open(&path).expect("Need input file");
@@ -12,15 +15,24 @@ pub fn run() {
     file.read_to_string(&mut input).expect("Need to read input");
 
     println!("Part one: {}", part_one(&input));
+    println!("Part two: {}", part_two(&input));
 }
 
 fn part_one(input: &str) -> i64 {
     let (rules, pagesets) = parse_input(input);
-    let good_sets = pagesets
-        .iter()
-        .filter(|x| check_pageset(x, &rules));
+    let good_sets = pagesets.iter().filter(|x| check_pageset(x, &rules));
     let middles = good_sets.map(|x| x.get((x.len() - 1) / 2).expect("Must have a middle"));
     middles.sum()
+}
+
+fn part_two(input: &str) -> i64 {
+    let (rules, pagesets) = parse_input(input);
+    pagesets
+        .iter()
+        .filter(|x| !check_pageset(x, &rules))
+        .map(|x| reorder_pageset(x, &rules))
+        .map(|x| *x.get((x.len() - 1) / 2).expect("Must have a middle"))
+        .sum()
 }
 
 fn check_pageset(pageset: &Vec<i64>, rules: &Vec<Rule>) -> bool {
@@ -141,5 +153,10 @@ mod tests {
             vec![97, 13, 75, 29, 47],
         ];
         assert_eq!(parse_pagesets(input), expected);
+    }
+
+    #[test]
+    fn test_part_two() {
+        assert_eq!(part_two(INPUT), 123);
     }
 }
