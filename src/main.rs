@@ -7,6 +7,8 @@ mod three;
 use three::run as run_three;
 mod four;
 use four::run as run_four;
+mod five;
+use five::run as run_five;
 
 mod parse;
 
@@ -25,6 +27,7 @@ enum Commands {
     Two{},
     Three{},
     Four{},
+    Five{},
 }
 
 fn main() {
@@ -35,5 +38,6 @@ fn main() {
         Commands::Two{} => run_two(cli.debug),
         Commands::Three{} => run_three(),
         Commands::Four{} => run_four(),
+        Commands::Five{} => run_five(),
     };
 }
