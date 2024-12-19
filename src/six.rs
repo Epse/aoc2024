@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 enum Direction {
     Up,
     Down,
@@ -30,6 +30,8 @@ pub fn run() {
     let simulated = simulate_guard(&starting_map);
     let visited = count_visited(&simulated);
     println!("Visited {} squares", visited);
+
+    println!("{} possible blockages", part_two(&starting_map));
 }
 
 fn parse_to_arr(path: &Path) -> Array2D<char> {
@@ -51,16 +53,72 @@ fn simulate_guard(starting_map: &Array2D<char>) -> Array2D<char> {
 
     loop {
         working_map.set(guard_pos.0, guard_pos.1, 'X').unwrap();
-        let next = facing(&working_map, guard_pos, guard_direction);
-        if next.is_none() {
+        if let Some((next_direction, next_pos)) = get_next(&working_map, guard_direction, guard_pos) {
+            guard_pos = next_pos;
+            guard_direction = next_direction;
+        } else {
             return working_map;
         }
+    }
+}
 
-        if next.unwrap() == '#' {
-            guard_direction = guard_direction.rotate();
+fn part_two(starting_map: &Array2D<char>) -> usize {
+    let mut working_map = starting_map.clone();
+    let mut guard_direction = Direction::Up;
+    // row, col
+    let initial_guard_pos = get_guard_pos(&working_map);
+    let mut guard_pos = initial_guard_pos.clone();
+    let mut positions = 0;
+
+    loop {
+        working_map.set(guard_pos.0, guard_pos.1, 'X').unwrap();
+        if let Some((next_direction, next_pos)) = get_next(&working_map, guard_direction, guard_pos) {
+            guard_pos = next_pos;
+            guard_direction = next_direction;
+            if *working_map.get(next_pos.0, next_pos.1).expect("Impossible") == '.' {
+                working_map.set(next_pos.0, next_pos.1, '#').unwrap();
+                if does_loop(&working_map, initial_guard_pos) {
+                    positions += 1;
+                }
+                working_map.set(next_pos.0, next_pos.1, '.').unwrap();
+            }
         } else {
-            guard_pos = proceed(guard_direction, guard_pos);
+            return positions;
         }
+    }
+}
+
+fn does_loop(map: &Array2D<char>, starting_pos: (usize, usize)) -> bool {
+    let mut working_map = map.clone();
+    let mut guard_direction = Direction::Up;
+    // row, col
+    let mut guard_pos = starting_pos;
+    let mut obstacles: Vec<((usize, usize), Direction)> = Vec::new();
+
+    loop {
+        working_map.set(guard_pos.0, guard_pos.1, 'X').unwrap();
+        if let Some((next_direction, next_pos)) = get_next(&working_map, guard_direction, guard_pos) {
+            if next_pos == guard_pos {
+                if obstacles.contains(&(next_pos, next_direction)) {
+                    // We are in a loop
+                    return true;
+                } else {
+                    obstacles.push((next_pos, next_direction));
+                }
+            }
+            guard_pos = next_pos;
+            guard_direction = next_direction;
+        } else {
+            return false;
+        }
+    }
+}
+
+fn get_next(map: &Array2D<char>, direction: Direction, pos: (usize, usize)) -> Option<(Direction, (usize, usize))> {
+    if facing(map, pos, direction)? != '#' {
+        Some((direction, proceed(direction, pos)))
+    } else {
+        Some((direction.rotate(), pos))
     }
 }
 
@@ -99,6 +157,7 @@ fn count_visited(map: &Array2D<char>) -> usize {
         .count()
 }
 
+#[allow(dead_code)]
 fn print_map(map: &Array2D<char>) {
     let folded = map
         .rows_iter()
@@ -111,9 +170,7 @@ fn print_map(map: &Array2D<char>) {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_part_one() {
-        let input = "....#.....
+    const INPUT: &str = "....#.....
 .........#
 ..........
 ..#.......
@@ -124,7 +181,9 @@ mod tests {
 #.........
 ......#...";
 
-        let lines = input
+    #[test]
+    fn test_part_one() {
+        let lines = INPUT
             .lines()
             .map(|line| line.chars().collect::<Vec<char>>())
             .collect::<Vec<Vec<char>>>();
@@ -135,5 +194,17 @@ mod tests {
         let visited = count_visited(&simulated);
 
         assert_eq!(visited, 41);
+    }
+
+    #[test]
+    fn test_part_two() {
+        let lines = INPUT
+            .lines()
+            .map(|line| line.chars().collect::<Vec<char>>())
+            .collect::<Vec<Vec<char>>>();
+        let starting_map: Array2D<char> = Array2D::from_rows(&lines).unwrap();
+
+
+        assert_eq!(part_two(&starting_map), 6);
     }
 }
