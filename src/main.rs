@@ -11,6 +11,8 @@ mod five;
 use five::run as run_five;
 mod six;
 use six::run as run_six;
+mod seven;
+use seven::run as run_seven;
 
 mod parse;
 
@@ -31,6 +33,7 @@ enum Commands {
     Four{},
     Five{},
     Six{},
+    Seven{},
 }
 
 fn main() {
@@ -43,5 +46,6 @@ fn main() {
         Commands::Four{} => run_four(),
         Commands::Five{} => run_five(),
         Commands::Six{} => run_six(),
+        Commands::Seven{} => run_seven(),
     };
 }
