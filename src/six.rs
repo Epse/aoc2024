@@ -75,21 +75,9 @@ fn proceed(direction: Direction, pos: (usize, usize)) -> (usize, usize) {
 
 fn facing(map: &Array2D<char>, pos: (usize, usize), direction: Direction) -> Option<char> {
     match direction {
-        Direction::Up => {
-            if pos.0 == 0 {
-                None
-            } else {
-                map.get(pos.0 - 1, pos.1).copied()
-            }
-        }
+        Direction::Up => map.get(pos.0.checked_sub(1)?, pos.1).copied(),
         Direction::Down => map.get(pos.0 + 1, pos.1).copied(),
-        Direction::Left => {
-            if pos.1 == 0 {
-                None
-            } else {
-                map.get(pos.0, pos.1 - 1).copied()
-            }
-        }
+        Direction::Left => map.get(pos.0, pos.1.checked_sub(1)?).copied(),
         Direction::Right => map.get(pos.0, pos.1 + 1).copied(),
     }
 }
