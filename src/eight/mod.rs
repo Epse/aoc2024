@@ -142,13 +142,6 @@ fn compute_harmonic(frequency: char, input: &String) -> HashSet<(usize, usize)> 
     antinodes
 }
 
-fn distance(a: (usize, usize), b: (usize, usize)) -> i64 {
-    let a = (a.0 as f64, a.1 as f64);
-    let b = (b.0 as f64, b.1 as f64);
-    let real_distance = f64::sqrt((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2));
-    real_distance as i64
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
